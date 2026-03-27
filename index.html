@@ -43,19 +43,19 @@
         <div class="test-grid" id="test-grid">
           <button type="button" class="test-btn active" data-test="1">
             <span class="test-emoji">📝</span>
-            <span>Test 1</span>
+            <span>Test 1 – Trắc nghiệm</span>
           </button>
           <button type="button" class="test-btn" data-test="2">
-            <span class="test-emoji">📝</span>
-            <span>Test 2</span>
+            <span class="test-emoji">🔗</span>
+            <span>Test 2 – Nối cột</span>
           </button>
           <button type="button" class="test-btn" data-test="3">
-            <span class="test-emoji">📝</span>
-            <span>Test 3</span>
+            <span class="test-emoji">✅</span>
+            <span>Test 3 – Đúng/Sai</span>
           </button>
           <button type="button" class="test-btn" data-test="4">
-            <span class="test-emoji">📝</span>
-            <span>Test 4</span>
+            <span class="test-emoji">🎯</span>
+            <span>Test 4 – Tổng hợp</span>
           </button>
         </div>
       </div>
@@ -65,29 +65,6 @@
         <div class="btn-shine"></div>
       </button>
     </form>
-
-    <div id="connect-info" class="connect-info">
-      <details>
-        <summary>⚙️ Cấu hình Google Sheets URL</summary>
-        <div class="sheet-config">
-          <p>Nhập URL Google Sheets đã publish (JSON):</p>
-          <div class="url-inputs" id="url-inputs">
-            <div class="url-row"><label>Test 1:</label><input type="text" id="url-1" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
-            <div class="url-row"><label>Test 2:</label><input type="text" id="url-2" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
-            <div class="url-row"><label>Test 3:</label><input type="text" id="url-3" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
-            <div class="url-row"><label>Test 4:</label><input type="text" id="url-4" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
-          </div>
-          <button onclick="saveUrls()" class="btn-save-url">💾 Lưu cấu hình</button>
-          <div class="guide-box">
-            <strong>📖 Hướng dẫn lấy URL:</strong><br>
-            1. Mở Google Sheets liên kết với Form<br>
-            2. File → Share → Publish to web → Chọn "Entire Document" + CSV<br>
-            3. Hoặc dùng URL dạng:<br>
-            <code>https://docs.google.com/spreadsheets/d/[ID]/gviz/tq?tqx=out:json</code>
-          </div>
-        </div>
-      </details>
-    </div>
   </div>
 </div>
 
@@ -102,7 +79,6 @@
 
 <!-- ===== SCREEN: QUIZ ===== -->
 <div id="screen-quiz" class="screen">
-  <!-- Header -->
   <div class="quiz-header">
     <div class="header-left">
       <div class="player-badge">
@@ -131,7 +107,6 @@
     </div>
   </div>
 
-  <!-- Question Area -->
   <div class="quiz-body" id="quiz-body">
     <div class="question-number" id="question-number">Câu 1</div>
     <div class="question-type-badge" id="question-type-badge">Trắc nghiệm</div>
@@ -143,7 +118,6 @@
     <div class="feedback-overlay" id="feedback-overlay"></div>
   </div>
 
-  <!-- Footer -->
   <div class="quiz-footer">
     <div class="streak-display" id="streak-display" style="display:none">
       🔥 Chuỗi đúng: <span id="streak-val">0</span>
@@ -187,7 +161,6 @@
 
     <div class="badges-row" id="badges-row"></div>
 
-    <!-- Review Table -->
     <div class="review-section">
       <h3>📋 Chi tiết từng câu</h3>
       <div class="review-table-wrap">
@@ -200,7 +173,6 @@
       </div>
     </div>
 
-    <!-- Leaderboard -->
     <div class="leaderboard-section">
       <h3>🏅 Bảng xếp hạng</h3>
       <div id="leaderboard-list"></div>
@@ -214,12 +186,1143 @@
   </div>
 </div>
 
-<!-- Audio -->
-<audio id="snd-correct" preload="auto">
-  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA..." type="audio/wav">
-</audio>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="script.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+//  DATA K7 – 50 CÂU HỎI (nhúng thẳng, không cần Google Sheets)
+//  Cấu trúc: { id, type, question, options:[], answer, image }
+//
+//  type: 'mcq'       → Trắc nghiệm 1 hoặc nhiều đáp án
+//        'truefalse' → Đúng/Sai (dropdown per-statement)
+//        'matching'  → Nối cột  (answer = JSON {left:right})
+//        'dragdrop'  → Kéo thả / phân loại
+//        'fill'      → Điền từ
+// ══════════════════════════════════════════════════════════════
+
+const ALL_QUESTIONS = {
+
+  // ── TEST 1: TRẮC NGHIỆM (MCQ 1 đáp án + nhiều đáp án) ──────
+  1: [
+    {
+      id:1, type:'mcq',
+      question:'Loại máy in nào phun mực lên giấy khi in?',
+      options:['Laser','Inkjet','3D','Thermal'],
+      answer:'Inkjet', image:null
+    },
+    {
+      id:2, type:'mcq',
+      question:'Phần cứng nào trong máy xử lý hiệu suất của video và đồ họa?',
+      options:['VRAM','VPU','CPU','GPU'],
+      answer:'GPU', image:null
+    },
+    {
+      id:3, type:'mcq',
+      question:'Billy gõ "cía" và khi gõ phím cách, từ đó đổi thành "cái". Tính năng nào tạo nên sự thay đổi này?',
+      options:['Xác thực dữ liệu (Data validation)','Tự sửa (AutoCorrect)','Tự định dạng (AutoFormat)','Trình soát chính tả (Spelling checker)'],
+      answer:'Tự sửa (AutoCorrect)', image:null
+    },
+    {
+      id:4, type:'mcq',
+      question:'Bạn đang sử dụng laptop ngoài trời đầy nắng và cần giảm mỏi mắt. Bạn nên điều chỉnh cài đặt màn hình nào?',
+      options:['Độ sắc nét (Sharpness)','Co giãn (Scale)','Độ sáng (Brightness)','Độ tương phản (Contrast)'],
+      answer:'Độ sáng (Brightness)', image:null
+    },
+    {
+      id:5, type:'mcq',
+      question:'Biểu tượng hình mặt trời trên bảng điều khiển thường đại diện cho cài đặt nào?',
+      options:['Độ tối (Darkness)','Độ sáng (Brightness)','Độ tương phản (Contrast)','Tông màn hình (Screen tone)'],
+      answer:'Độ sáng (Brightness)', image:null
+    },
+    {
+      id:6, type:'mcq',
+      question:'Bạn có 2 tài khoản Google và cần truy cập tập tin được chia sẻ qua Google Drive tài khoản trường. Bạn nên làm gì?',
+      options:['Liên kết Google Drive 2 tài khoản','Đặt cùng mật khẩu cho 2 tài khoản','Trong cài đặt cá nhân, bỏ chặn tài khoản trường','Chuyển từ tài khoản cá nhân sang tài khoản trường học'],
+      answer:'Chuyển từ tài khoản cá nhân sang tài khoản trường học', image:null
+    },
+    {
+      id:7, type:'mcq',
+      question:'Bạn kết nối tai nghe với máy tính nhưng âm thanh vẫn phát ra loa ngoài. Bạn nên làm gì?',
+      options:['Quản lý thiết bị đầu ra','Quản lý thiết bị đầu vào','Tắt tiếng loa máy tính','Đặt cấu hình cài đặt âm thanh Trợ năng'],
+      answer:'Quản lý thiết bị đầu ra', image:null
+    },
+    {
+      id:8, type:'mcq',
+      question:'Cô Wilkins nhập chữ "Y" và từ "Yes" tự xuất hiện trong ô bảng tính. Tính năng nào tạo nên sự thay đổi này?',
+      options:['Tự định dạng (AutoFormat)','Tự động điền (AutoFill)','Tự khớp (AutoFit)','Tự động hoàn tất (AutoComplete)'],
+      answer:'Tự động hoàn tất (AutoComplete)', image:null
+    },
+    {
+      id:9, type:'mcq',
+      question:'Thiết bị xuất nào sau đây được sử dụng để điều khiển âm thanh?',
+      options:['Chuột máy tính (Mouse)','Loa (Speakers)','Mic (Microphone)','Bàn phím (Keyboard)'],
+      answer:'Loa (Speakers)', image:null
+    },
+    {
+      id:10, type:'mcq',
+      question:'Đâu là quá trình chuyển đổi dữ liệu sang dạng thức không thể nhận dạng, yêu cầu sử dụng khóa để trả dữ liệu về dạng văn bản thuần?',
+      options:['Nén (Compression)','Mã hóa Encoding','Hàm băm (Hashing)','Mã hóa Encryption'],
+      answer:'Mã hóa Encryption', image:null
+    },
+    {
+      id:11, type:'mcq',
+      question:'Lợi thế của việc sử dụng ví điện tử như Apple Pay hoặc Google Pay là gì?',
+      options:['Tự động cung cấp số thẻ tín dụng cho cửa hàng trực tuyến','Tạo lịch sử tín dụng của bạn','Khuyến khích bạn tìm kiếm mua sắm với giá tốt nhất','Yêu cầu bạn ủy quyền mọi giao dịch'],
+      answer:'Yêu cầu bạn ủy quyền mọi giao dịch', image:null
+    },
+    {
+      id:12, type:'mcq',
+      question:'Nội dung hiển thị trên màn hình rất khó xem: vùng tối quá tối, vùng sáng quá sáng. Bạn nên điều chỉnh cài đặt màn hình nào?',
+      options:['Độ tương phản (Contrast)','Độ sáng (Brightness)','Nguồn đầu vào (Input Source)','Độ sắc nét (Sharpness)'],
+      answer:'Độ tương phản (Contrast)', image:null
+    },
+    {
+      id:13, type:'mcq',
+      question:'Tính năng phần mềm nào giúp sửa lỗi chính tả khi bạn nhập và có thể đoán các chữ cái bạn muốn nhập (VD: "see you latet" → "see you later")?',
+      options:['Tự động hoàn thành (Autocomplete)','Trình kiểm tra ngữ pháp (Grammar Checker)','Tự động hóa (Automation)','Tự động sửa lỗi (Autocorrect)'],
+      answer:'Tự động sửa lỗi (Autocorrect)', image:null
+    },
+    {
+      id:14, type:'mcq',
+      question:'Tính năng nào được sử dụng trong nhiều ứng dụng để thay thế những từ bị sai chính tả bằng các từ dự định một cách tự động?',
+      options:['Autofill','Autofix','Autocorrect','Autocomplete'],
+      answer:'Autocorrect', image:null
+    },
+    // Câu nhiều đáp án – hiển thị như MCQ nhưng đáp án là chuỗi phân cách "|"
+    {
+      id:15, type:'mcq',
+      question:'Bạn đang thiết kế áp phích cho khách hàng và định kỳ lưu các phiên bản mới. Đâu là hai nhóm tập tin thể hiện quy ước đặt tên tập tin phù hợp? (Chọn đáp án gộp đúng nhất)',
+      options:[
+        'Áp phích.psd | bản sao áp phích.psd | bản sao áp phích2.psd',
+        'Áp phích_bản gốc.psd | áp phích_đã cắt.psd | áp phích_thước xám.psd',
+        'Áp phích của tôi.psd | áp phích mới.psd | áp phích.psd',
+        'Áp phích_bản nháp1.psd | áp phích_bản nháp2.psd | áp phích_BẢN CUỐI.psd'
+      ],
+      answer:'Áp phích_bản nháp1.psd | áp phích_bản nháp2.psd | áp phích_BẢN CUỐI.psd', image:null
+    },
+    {
+      id:16, type:'mcq',
+      question:'Mẹ của Minh có thị lực kém. Tùy chọn nào sau đây phù hợp để Minh tùy chỉnh giúp mẹ xem màn hình dễ hơn? (Chọn đáp án gộp đúng nhất)',
+      options:['Màu sắc (Color) và Cỡ chữ (Font size)','Màu sắc (Color) và Âm lượng (Volume)','Cỡ chữ (Font size) và Nhạc chuông (Ring tone)','Âm lượng (Volume) và Nhạc chuông (Ring tone)'],
+      answer:'Màu sắc (Color) và Cỡ chữ (Font size)', image:null
+    },
+    {
+      id:17, type:'mcq',
+      question:'Hai điểm khác biệt nào phân biệt giữa máy in Laser và máy in phun? (Chọn đáp án gộp đúng nhất)',
+      options:[
+        'Laser dùng Toner + Phun phù hợp số lượng ít',
+        'Laser dùng mực Ink + Phun phù hợp số lượng lớn',
+        'Laser dùng Toner + Phun phù hợp số lượng lớn',
+        'Laser dùng mực Ink + Phun phù hợp số lượng ít'
+      ],
+      answer:'Laser dùng Toner + Phun phù hợp số lượng lớn', image:null
+    },
+    {
+      id:18, type:'mcq',
+      question:'Khi tạo cuộc hẹn hoặc nhiệm vụ trên lịch kĩ thuật số cá nhân, bạn thường có thể tùy chỉnh hai cài đặt nào? (Chọn đáp án gộp đúng nhất)',
+      options:[
+        'Lời nhắc (Reminders) và Chi phí sự kiện',
+        'Lời nhắc (Reminders) và Tần suất lặp lại sự kiện',
+        'Tần suất lặp lại và Người tổ chức sự kiện',
+        'Chi phí sự kiện và Người tổ chức sự kiện'
+      ],
+      answer:'Lời nhắc (Reminders) và Tần suất lặp lại sự kiện', image:null
+    },
+    {
+      id:19, type:'mcq',
+      question:'Bạn cần tắt tính năng nào trên thiết bị Windows để ngăn phương tiện di động tự động khởi động? (Chọn đáp án gộp đúng nhất)',
+      options:['AutoStart và AutoConnect','AutoRun và AutoPlay','AutoStart và AutoPlay','AutoConnect và AutoRun'],
+      answer:'AutoRun và AutoPlay', image:null
+    },
+    {
+      id:20, type:'mcq',
+      question:'Khi mô tả Điện toán đám mây, điều nào sau đây là ưu điểm? (Chọn đáp án gộp đúng nhất)',
+      options:[
+        'Sao lưu & Khôi phục + Bảo mật tốt hơn',
+        'Bảo mật tốt hơn + Băng thông cao hơn',
+        'Sao lưu & Khôi phục + Tính di động + Tiết kiệm chi phí',
+        'Băng thông cao hơn + Hỗ trợ tốt hơn + Tiết kiệm chi phí'
+      ],
+      answer:'Sao lưu & Khôi phục + Tính di động + Tiết kiệm chi phí', image:null
+    },
+  ],
+
+  // ── TEST 2: NỐI CỘT (matching) ──────────────────────────────
+  2: [
+    {
+      id:21, type:'matching',
+      question:'Nối từng hình thức giao tiếp với tình huống sử dụng phù hợp.',
+      options:[],
+      answer: JSON.stringify({
+        'Email': 'Bạn liên lạc với công ty về việc nhận tiền hoàn lại',
+        'Bài đăng diễn đàn': 'Bạn thêm câu hỏi vào nhóm thảo luận trò chơi điện tử',
+        'Bài đăng Blog': 'Bạn viết đoạn dài trình bày quan điểm về sự đa dạng văn hóa',
+        'Tin nhắn văn bản': 'Bạn liên hệ huấn luyện viên để báo bỏ lỡ buổi tập'
+      }),
+      image: null
+    },
+    {
+      id:22, type:'matching',
+      question:'Xác định ưu điểm của máy in phun và máy in laser – nối loại máy in tương ứng với từng ưu điểm.',
+      options:[],
+      answer: JSON.stringify({
+        'Tài liệu khô mực ngay khi in ra': 'Máy in phun',
+        'Thân thiện với môi trường hơn': 'Máy In laser',
+        'Phù hợp để in số lượng ít': 'Máy In laser',
+        'Thích hợp in tài liệu số lượng lớn với chi phí thấp': 'Máy in phun'
+      }),
+      image: null
+    },
+    {
+      id:23, type:'matching',
+      question:'Nối từng phần mở rộng tập tin với tình huống hỗ trợ tương ứng.',
+      options:[],
+      answer: JSON.stringify({
+        'Logo có nền trong suốt': '.png',
+        'Tập tin chứa văn bản chưa định dạng': '.txt',
+        'Ảnh hiển thị trên trang Web': '.jpg',
+        'Tập tin gửi qua Email cho công ty in': '.pdf'
+      }),
+      image: null
+    },
+    {
+      id:24, type:'matching',
+      question:'Khớp từng cáp với thiết bị mà nó thường kết nối.',
+      options:[],
+      answer: JSON.stringify({
+        'Thiết bị chuyển mạch (Switch)': 'CAT6',
+        'Loa (Speakers)': 'Audio',
+        'Bàn phím (Keyboard)': 'USB',
+        'Truyền hình (Television)': 'HDMI'
+      }),
+      image: null
+    },
+    {
+      id:25, type:'matching',
+      question:'Nối từng phần mở rộng tập tin với mô tả định dạng tương ứng.',
+      options:[],
+      answer: JSON.stringify({
+        'Tập tin văn bản hỗ trợ văn bản và đồ họa định dạng': '.rtf',
+        'Hình vạch quét có độ nén cao, chứa nhiều hình ảnh trong một tập tin': '.gif',
+        'Tập tin văn bản chỉ hỗ trợ văn bản thuần ở định dạng tuyến tính': '.txt',
+        'Nén không mất dữ liệu, hỗ trợ hình ảnh trong suốt, màu sắc trung thực 48 bit': '.png'
+      }),
+      image: null
+    },
+    {
+      id:26, type:'matching',
+      question:'Ghép từng bên tham gia thanh toán kỹ thuật số với định nghĩa tương ứng.',
+      options:[],
+      answer: JSON.stringify({
+        'Cho phép các giao dịch': 'Ngân hàng thanh toán (Acquirer)',
+        'Bán hàng hóa và dịch vụ': 'Người bán (Merchant)',
+        'Cung cấp thẻ ghi nợ hoặc thẻ tín dụng': 'Nhà phát hành (Issuer)'
+      }),
+      image: null
+    },
+    {
+      id:27, type:'matching',
+      question:'Nối từng loại quyền truy cập tập tin với định nghĩa tương ứng.',
+      options:[],
+      answer: JSON.stringify({
+        'Xem nội dung, thêm dữ liệu và xóa tập tin': 'Ghi (Write)',
+        'Thêm dữ liệu và đọc hoặc thay đổi thuộc tính tập tin': 'Sửa (Modify)',
+        'Xem hoặc truy cập nội dung và chạy tập tin nếu là chương trình': 'Đọc & Thực thi (Read & Execute)',
+        'Xem hoặc truy cập nội dung tập tin': 'Đọc (Read)'
+      }),
+      image: null
+    },
+    {
+      id:28, type:'matching',
+      question:'Nối từng tùy chỉnh sự kiện lịch với cài đặt tương ứng (thêm sinh nhật bố vào lịch).',
+      options:[],
+      answer: JSON.stringify({
+        'Xoá thời gian bắt đầu và kết thúc sự kiện': 'Cả ngày (toggle)',
+        'Thêm sự kiện vào một ngày cố định hàng năm': 'Không lặp lại → Hàng năm',
+        'Nhận thông báo một tuần trước để không quên mua quà': 'Nhắc nhở (Reminder)',
+        'Thêm sự kiện vào lịch của anh trai bạn': 'Mời người dự (Guests)'
+      }),
+      image: null
+    },
+    {
+      id:29, type:'matching',
+      question:'Nối từng hình thức giao tiếp với mô tả phù hợp.',
+      options:[],
+      answer: JSON.stringify({
+        'Email': 'Giao tiếp chính thức, có thể đính kèm tài liệu',
+        'Tin nhắn văn bản': 'Giao tiếp nhanh, không chính thức',
+        'Blog': 'Chia sẻ nội dung dài, mang tính cá nhân hoặc chuyên đề',
+        'Diễn đàn': 'Thảo luận nhóm về một chủ đề cụ thể'
+      }),
+      image: null
+    },
+    {
+      id:30, type:'matching',
+      question:'Ghép từng bước chuẩn bị bảng tính thống kê bóng mềm theo đúng thứ tự.',
+      options:[],
+      answer: JSON.stringify({
+        'Bước 1': 'Tạo một trang tính',
+        'Bước 2': 'Sao chép trang tính cho mỗi trò chơi',
+        'Bước 3': 'Tạo tiêu đề cột: Người chơi, Lượt truy cập, Lượt chạy, Lỗi',
+        'Bước 4': 'Điền tên vào cột Người chơi'
+      }),
+      image: null
+    },
+  ],
+
+  // ── TEST 3: ĐÚNG / SAI ───────────────────────────────────────
+  3: [
+    {
+      id:31, type:'truefalse',
+      question:'Với mỗi câu phát biểu về Điện toán đám mây, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Các ứng dụng đám mây phải được cập nhật thủ công|Đúng',
+        'Lưu trữ tập tin trên đám mây kém an toàn hơn so với lưu trữ tập tin cục bộ|Sai',
+        'Các ứng dụng và lưu trữ trên đám mây sẽ không có khả năng bị gặp sự cố dịch vụ|Đúng',
+        'Bạn có thể truy cập tập tin lưu trữ trong bộ nhớ đám mây từ bất cứ nơi đâu có kết nối Internet|Sai'
+      ],
+      answer:'Đúng|Sai|Đúng|Sai', image:null
+    },
+    {
+      id:32, type:'truefalse',
+      question:'Với mỗi câu phát biểu về Bảy nguyên tắc của thiết kế phần cứng phổ quát, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Tính linh hoạt khi sử dụng (Flexibility in Use): Thiết kế phù hợp với nhiều sở thích và khả năng của từng cá nhân|Đúng',
+        'Dễ dàng thay thế (Easy to replace): Thiết kế cho phép thay thế dễ dàng|Đúng',
+        'Ít nỗ lực thể chất (Low Physical Effort): Thiết kế có thể được sử dụng hiệu quả, thoải mái và ít mệt mỏi|Sai',
+        'Khả năng mở rộng (Scalable): Thiết kế dễ dàng nâng cấp và mở rộng|Sai'
+      ],
+      answer:'Đúng|Đúng|Sai|Sai', image:null
+    },
+    {
+      id:33, type:'truefalse',
+      question:'Với mỗi câu phát biểu về Trình duyệt Web, hãy chọn Có hoặc Không (bạn có thể thực hiện tác vụ này trên trình duyệt Web hay không).',
+      options:[
+        'Tùy chỉnh các nút, menu hoặc thanh công cụ của trình duyệt Web|Đúng',
+        'Thay đổi trang chủ của trình duyệt Web|Đúng',
+        'Thêm các phần bổ trợ và phần mở rộng vào trình duyệt để có thêm chức năng|Đúng'
+      ],
+      answer:'Đúng|Đúng|Đúng', image:null
+    },
+    {
+      id:34, type:'truefalse',
+      question:'Với mỗi câu phát biểu về bộ xử lý trung tâm (CPU), hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Hầu hết các bộ xử lý trung tâm hiện đại đều được xây dựng để hỗ trợ các hệ thống 64-bit|Đúng',
+        'CPU thường có bộ tản nhiệt khí hoặc tản nhiệt nước đi kèm|Sai',
+        'Tốc độ CPU ảnh hưởng đến số khung hình trên giây (fps) hiển thị trong trò chơi 3D|Đúng'
+      ],
+      answer:'Đúng|Sai|Đúng', image:null
+    },
+    {
+      id:35, type:'truefalse',
+      question:'Với mỗi câu phát biểu về cáp kết nối, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Bạn có thể sử dụng cáp HDMI để kết nối máy tính xách tay với máy chiếu|Đúng',
+        'Bạn có thể sử dụng cáp DVI để kết nối trực tiếp hai máy tính nhằm chia sẻ tập tin|Sai',
+        'Bạn có thể sử dụng cáp CAT6 Ethernet để kết nối trực tiếp máy tính với bộ định tuyến không dây|Đúng'
+      ],
+      answer:'Đúng|Sai|Đúng', image:null
+    },
+    {
+      id:36, type:'truefalse',
+      question:'Với mỗi câu phát biểu về tính bảo mật của thiết bị đa phương tiện di động, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Bạn nên tắt tính năng Tự động chạy và Tự động phát cho tất cả các thiết bị đa phương tiện di động|Đúng',
+        'Bạn nên lưu trữ các tập tin cá nhân trên các thiết bị riêng biệt, không được cắm thiết bị cá nhân vào máy tính làm việc|Sai',
+        'Nếu tìm thấy một thiết bị lưu trữ không biết chủ nhân, hãy cắm vào máy tính để tìm thông tin chủ nhân|Sai'
+      ],
+      answer:'Đúng|Sai|Sai', image:null
+    },
+    {
+      id:37, type:'truefalse',
+      question:'Với mỗi câu phát biểu về hệ thống lưu trữ dữ liệu trung tâm, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Khi bạn tải một tập tin lên hệ thống lưu trữ dữ liệu trung tâm, tập tin sẽ bị xóa khỏi máy tính của bạn|Sai',
+        'Bạn có thể sử dụng chương trình FTP để tải lên và tải xuống các tập tin từ hệ thống lưu trữ dữ liệu trung tâm|Đúng',
+        'Nhiều hệ thống lưu trữ dữ liệu trung tâm có thể tự động sao lưu các tập tin từ máy tính và cập nhật phiên bản tập tin mới nhất cho máy tính của bạn|Sai'
+      ],
+      answer:'Sai|Đúng|Sai', image:null
+    },
+    {
+      id:38, type:'truefalse',
+      question:'Bạn gặp sự cố khi in tài liệu. Với mỗi câu phát biểu, hãy chọn Đúng nếu đó là phương pháp xác nhận kết nối thành công với máy in.',
+      options:[
+        'Với máy in kết nối trực tiếp, hãy thay thế cáp kết nối bằng cáp CAT6|Sai',
+        'Kiểm tra trạng thái kết nối máy in trong cửa sổ cài đặt Máy in & Máy quét (Printers & Scanners)|Đúng',
+        'Đối với máy in kết nối Ethernet, hãy đảm bảo cáp Ethernet kết nối trực tiếp với máy tính thay vì qua bộ định tuyến|Sai'
+      ],
+      answer:'Sai|Đúng|Sai', image:null
+    },
+    {
+      id:39, type:'truefalse',
+      question:'Đối với mỗi phát biểu về phần mở rộng tập tin, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Các tập tin .txt vẫn giữ nguyên định dạng khi được sao chép từ tập tin khác|Đúng',
+        'Hình ảnh động có phần mở rộng tập tin .jpg|Sai',
+        'Các tập tin có phần mở rộng .pdf trông giống hệt tập tin gốc nhưng không thể chỉnh sửa được|Đúng',
+        'Phần mở rộng tập tin hình ảnh có thể có nền trong suốt sẽ là .png|Đúng'
+      ],
+      answer:'Đúng|Sai|Đúng|Đúng', image:null
+    },
+    {
+      id:40, type:'truefalse',
+      question:'Với mỗi câu phát biểu về mã hóa tập tin, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Mã hóa tập tin làm giảm tốc độ truy cập tập tin|Sai',
+        'Tất cả các tập tin trong bộ nhớ đám mây được mã hóa mặc định|Đúng',
+        'Bạn chỉ có thể mở tập tin được mã hóa trên máy tính đã mã hóa tập tin đó|Sai'
+      ],
+      answer:'Sai|Đúng|Sai', image:null
+    },
+  ],
+
+  // ── TEST 4: TỔNG HỢP (mix các dạng) ─────────────────────────
+  4: [
+    {
+      id:41, type:'mcq',
+      question:'Loại máy in nào phun mực lên giấy khi in?',
+      options:['Laser','Inkjet','3D','Thermal'],
+      answer:'Inkjet', image:null
+    },
+    {
+      id:42, type:'mcq',
+      question:'Phần cứng nào trong máy xử lý hiệu suất của video và đồ họa?',
+      options:['VRAM','VPU','CPU','GPU'],
+      answer:'GPU', image:null
+    },
+    {
+      id:43, type:'matching',
+      question:'Nối từng hình thức giao tiếp với tình huống sử dụng phù hợp.',
+      options:[],
+      answer: JSON.stringify({
+        'Email': 'Bạn liên lạc với công ty về việc nhận tiền hoàn lại',
+        'Bài đăng diễn đàn': 'Bạn thêm câu hỏi vào nhóm thảo luận trò chơi điện tử',
+        'Bài đăng Blog': 'Bạn viết đoạn dài trình bày quan điểm về sự đa dạng văn hóa',
+        'Tin nhắn văn bản': 'Bạn liên hệ huấn luyện viên để báo bỏ lỡ buổi tập'
+      }),
+      image: null
+    },
+    {
+      id:44, type:'truefalse',
+      question:'Với mỗi câu phát biểu về bộ xử lý trung tâm (CPU), hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Hầu hết các bộ xử lý trung tâm hiện đại đều được xây dựng để hỗ trợ các hệ thống 64-bit|Đúng',
+        'CPU thường có bộ tản nhiệt khí hoặc tản nhiệt nước đi kèm|Sai',
+        'Tốc độ CPU ảnh hưởng đến số khung hình trên giây (fps) hiển thị trong trò chơi 3D|Đúng'
+      ],
+      answer:'Đúng|Sai|Đúng', image:null
+    },
+    {
+      id:45, type:'mcq',
+      question:'Biểu tượng hình mặt trời trên bảng điều khiển thường đại diện cho cài đặt nào?',
+      options:['Độ tối (Darkness)','Độ sáng (Brightness)','Độ tương phản (Contrast)','Tông màn hình (Screen tone)'],
+      answer:'Độ sáng (Brightness)', image:null
+    },
+    {
+      id:46, type:'matching',
+      question:'Khớp từng cáp với thiết bị mà nó thường kết nối.',
+      options:[],
+      answer: JSON.stringify({
+        'Thiết bị chuyển mạch (Switch)': 'CAT6',
+        'Loa (Speakers)': 'Audio',
+        'Bàn phím (Keyboard)': 'USB',
+        'Truyền hình (Television)': 'HDMI'
+      }),
+      image: null
+    },
+    {
+      id:47, type:'truefalse',
+      question:'Với mỗi câu phát biểu về Điện toán đám mây, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Các ứng dụng đám mây phải được cập nhật thủ công|Đúng',
+        'Lưu trữ tập tin trên đám mây kém an toàn hơn so với lưu trữ tập tin cục bộ|Sai',
+        'Các ứng dụng và lưu trữ trên đám mây sẽ không có khả năng bị gặp sự cố dịch vụ|Đúng'
+      ],
+      answer:'Đúng|Sai|Đúng', image:null
+    },
+    {
+      id:48, type:'mcq',
+      question:'Đâu là quá trình chuyển đổi dữ liệu sang dạng thức không thể nhận dạng, yêu cầu sử dụng khóa để trả về dạng văn bản thuần?',
+      options:['Nén (Compression)','Mã hóa Encoding','Hàm băm (Hashing)','Mã hóa Encryption'],
+      answer:'Mã hóa Encryption', image:null
+    },
+    {
+      id:49, type:'matching',
+      question:'Nối từng phần mở rộng tập tin với tình huống hỗ trợ tương ứng.',
+      options:[],
+      answer: JSON.stringify({
+        'Logo có nền trong suốt': '.png',
+        'Tập tin chứa văn bản chưa định dạng': '.txt',
+        'Ảnh hiển thị trên trang Web': '.jpg',
+        'Tập tin gửi qua Email cho công ty in': '.pdf'
+      }),
+      image: null
+    },
+    {
+      id:50, type:'truefalse',
+      question:'Đối với mỗi phát biểu về phần mở rộng tập tin, hãy chọn Đúng hoặc Sai.',
+      options:[
+        'Các tập tin .txt vẫn giữ nguyên định dạng khi được sao chép từ tập tin khác|Đúng',
+        'Hình ảnh động có phần mở rộng tập tin .jpg|Sai',
+        'Phần mở rộng tập tin hình ảnh có thể có nền trong suốt sẽ là .png|Đúng'
+      ],
+      answer:'Đúng|Sai|Đúng', image:null
+    },
+  ],
+};
+
+// ══════════════════════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════════════════════
+const CONFIG = {
+  QUESTION_LIMIT: 10,
+  TIMER_SECONDS: 30,
+  POINTS_CORRECT: 100,
+  POINTS_STREAK: 20,
+  STORAGE_KEY: 'minitest_k7',
+  LEADERBOARD_KEY: 'minitest_leaderboard',
+};
+
+// ══════════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════════
+let state = {
+  student: null,
+  questions: [],
+  current: 0,
+  score: 0,
+  streak: 0,
+  maxStreak: 0,
+  answers: [],
+  startTime: null,
+  timer: null,
+  timerValue: CONFIG.TIMER_SECONDS,
+  answered: false,
+  selectedTest: 1,
+  dragState: { dragging: null },
+  matchState: { selected: null, pairs: {} },
+};
+
+// ══════════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initParticles();
+  loadSavedStudent();
+  initTestSelector();
+});
+
+function initParticles() {
+  const container = document.getElementById('particles');
+  const colors = ['#a78bfa','#f59e0b','#10b981','#3b82f6','#ec4899'];
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 20 + 8;
+    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;background:${colors[Math.floor(Math.random()*colors.length)]};animation-duration:${Math.random()*15+10}s;animation-delay:${Math.random()*10}s;`;
+    container.appendChild(p);
+  }
+}
+
+function initTestSelector() {
+  document.querySelectorAll('.test-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.test-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.selectedTest = parseInt(btn.dataset.test);
+    });
+  });
+}
+
+function loadSavedStudent() {
+  const saved = localStorage.getItem(CONFIG.STORAGE_KEY);
+  if (saved) {
+    const data = JSON.parse(saved);
+    if (data.name) document.getElementById('inp-name').value = data.name;
+    if (data.class) document.getElementById('inp-class').value = data.class;
+    if (data.id) document.getElementById('inp-id').value = data.id;
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+//  START GAME
+// ══════════════════════════════════════════════════════════════
+async function startGame() {
+  const name = document.getElementById('inp-name').value.trim();
+  const cls  = document.getElementById('inp-class').value.trim();
+  const id   = document.getElementById('inp-id').value.trim();
+  if (!name || !cls || !id) { showToast('⚠️ Vui lòng điền đầy đủ thông tin!'); return; }
+
+  state.student = { name, class: cls, id };
+  localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state.student));
+
+  showScreen('loading');
+  animateLoading();
+
+  const pool = ALL_QUESTIONS[state.selectedTest] || ALL_QUESTIONS[1];
+  state.questions  = shuffleArray([...pool]).slice(0, CONFIG.QUESTION_LIMIT);
+  state.current    = 0; state.score = 0; state.streak = 0;
+  state.maxStreak  = 0; state.answers = [];
+  state.startTime  = Date.now();
+
+  setTimeout(() => { setupQuizUI(); showScreen('quiz'); renderQuestion(); }, 1400);
+}
+
+function animateLoading() {
+  const fill = document.getElementById('loading-fill');
+  let w = 0;
+  const iv = setInterval(() => {
+    w += Math.random() * 15 + 5;
+    if (w >= 95) { clearInterval(iv); w = 95; }
+    fill.style.width = w + '%';
+  }, 100);
+}
+
+// ══════════════════════════════════════════════════════════════
+//  QUIZ UI
+// ══════════════════════════════════════════════════════════════
+function setupQuizUI() {
+  document.getElementById('q-name').textContent  = state.student.name;
+  document.getElementById('q-class').textContent = state.student.class;
+  const avs = ['🧑','👧','🧒','👦','🙋','🎓'];
+  document.getElementById('q-avatar').textContent = avs[Math.floor(Math.random()*avs.length)];
+}
+
+function renderQuestion() {
+  if (state.current >= state.questions.length) { endGame(); return; }
+  const q = state.questions[state.current];
+  state.answered = false;
+
+  const pct = (state.current / state.questions.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${state.current+1} / ${state.questions.length}`;
+  document.getElementById('question-number').textContent = `Câu ${state.current+1}`;
+
+  const typeNames = { mcq:'Trắc nghiệm', fill:'Điền từ', dragdrop:'Kéo thả', matching:'Nối cột', truefalse:'Đúng / Sai' };
+  document.getElementById('question-type-badge').textContent = typeNames[q.type] || 'Câu hỏi';
+  document.getElementById('question-text').textContent = q.question;
+
+  const imgWrap = document.getElementById('question-image-wrap');
+  if (q.image) { document.getElementById('question-image').src = q.image; imgWrap.style.display = 'block'; }
+  else { imgWrap.style.display = 'none'; }
+
+  const overlay = document.getElementById('feedback-overlay');
+  overlay.className = 'feedback-overlay'; overlay.textContent = '';
+  document.getElementById('btn-next').style.display = 'none';
+  document.getElementById('streak-display').style.display = 'none';
+
+  const wrap = document.getElementById('answers-wrap');
+  wrap.innerHTML = '';
+
+  switch (q.type) {
+    case 'fill':      renderFill(q, wrap); break;
+    case 'dragdrop':  renderDragDrop(q, wrap); break;
+    case 'matching':  renderMatching(q, wrap); break;
+    case 'truefalse': renderTrueFalse(q, wrap); break;
+    default:          renderMCQ(q, wrap);
+  }
+  startTimer();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MCQ
+// ══════════════════════════════════════════════════════════════
+function renderMCQ(q, wrap) {
+  const letters = ['A','B','C','D','E','F'];
+  wrap.className = 'answers-wrap grid-2';
+  shuffleArray([...q.options]).forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.dataset.value = opt;
+    btn.innerHTML = `<span class="opt-letter">${letters[i]}</span><span class="opt-text">${opt}</span>`;
+    btn.addEventListener('click', () => handleMCQAnswer(opt, q.answer));
+    wrap.appendChild(btn);
+  });
+}
+
+function handleMCQAnswer(selected, correct) {
+  if (state.answered) return;
+  state.answered = true; clearTimer();
+  const isCorrect = selected.trim().toLowerCase() === correct.trim().toLowerCase();
+  const timeBonus = Math.floor((state.timerValue / CONFIG.TIMER_SECONDS) * 50);
+  processAnswer(isCorrect, selected, correct, timeBonus);
+  highlightMCQButtons(selected, correct);
+  showFeedback(isCorrect); showNextBtn();
+}
+
+function highlightMCQButtons(selected, correct) {
+  document.querySelectorAll('.answer-btn').forEach(btn => {
+    btn.disabled = true;
+    const v = btn.dataset.value;
+    if (v.trim().toLowerCase() === correct.trim().toLowerCase()) btn.classList.add('correct');
+    else if (v.trim().toLowerCase() === selected.trim().toLowerCase()) btn.classList.add('wrong');
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  TRUE / FALSE – render inline Đúng/Sai per statement
+// ══════════════════════════════════════════════════════════════
+function renderTrueFalse(q, wrap) {
+  wrap.className = 'answers-wrap grid-1';
+  const statements = q.options; // ['phát biểu|Đúng/Sai', ...]
+  const correctAnswers = q.answer.split('|'); // ['Đúng','Sai',...]
+  const userSelections = new Array(statements.length).fill(null);
+
+  const container = document.createElement('div');
+  container.className = 'tf-container';
+
+  statements.forEach((stmt, idx) => {
+    const [text] = stmt.split('|');
+    const row = document.createElement('div');
+    row.className = 'tf-row';
+    row.innerHTML = `
+      <div class="tf-text">${idx+1}. ${text}</div>
+      <div class="tf-btns">
+        <button class="tf-btn tf-true" data-idx="${idx}" data-val="Đúng">✅ Đúng</button>
+        <button class="tf-btn tf-false" data-idx="${idx}" data-val="Sai">❌ Sai</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+
+  const submitBtn = document.createElement('button');
+  submitBtn.className = 'btn-submit-fill';
+  submitBtn.style.marginTop = '14px';
+  submitBtn.textContent = '✅ Xác nhận tất cả';
+  submitBtn.disabled = true;
+
+  container.appendChild(submitBtn);
+  wrap.appendChild(container);
+
+  // Handle tf button clicks
+  wrap.querySelectorAll('.tf-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      userSelections[idx] = btn.dataset.val;
+      // Highlight selected in row
+      const row = btn.closest('.tf-row');
+      row.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('tf-selected'));
+      btn.classList.add('tf-selected');
+      // Enable submit when all answered
+      if (userSelections.every(s => s !== null)) submitBtn.disabled = false;
+    });
+  });
+
+  submitBtn.addEventListener('click', () => {
+    if (state.answered) return;
+    state.answered = true; clearTimer(); submitBtn.disabled = true;
+
+    let correct = 0;
+    statements.forEach((stmt, idx) => {
+      const expected = correctAnswers[idx]?.trim() || '';
+      const given    = userSelections[idx] || '';
+      const isOk     = given.toLowerCase() === expected.toLowerCase();
+      if (isOk) correct++;
+
+      // Color each row
+      const row = wrap.querySelectorAll('.tf-row')[idx];
+      wrap.querySelectorAll(`.tf-btn[data-idx="${idx}"]`).forEach(b => {
+        b.disabled = true;
+        if (b.dataset.val.toLowerCase() === expected.toLowerCase()) b.classList.add('tf-correct');
+        else if (b.dataset.val === given) b.classList.add('tf-wrong');
+      });
+    });
+
+    const allCorrect = correct === statements.length;
+    const userAns = userSelections.join(' | ');
+    const correctAns = correctAnswers.join(' | ');
+    processAnswer(allCorrect, userAns, correctAns, 0);
+    showFeedback(allCorrect); showNextBtn();
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+//  FILL
+// ══════════════════════════════════════════════════════════════
+function renderFill(q, wrap) {
+  wrap.className = 'answers-wrap grid-1';
+  wrap.innerHTML = `
+    <div class="fill-wrap">
+      <input type="text" class="fill-input" id="fill-input" placeholder="Nhập câu trả lời..." autocomplete="off">
+      <button class="btn-submit-fill" id="btn-submit-fill">✅ Xác nhận</button>
+    </div>`;
+  const input = document.getElementById('fill-input');
+  document.getElementById('btn-submit-fill').addEventListener('click', () => submitFill(q));
+  input.addEventListener('keypress', e => { if (e.key === 'Enter') submitFill(q); });
+  input.focus();
+}
+
+function submitFill(q) {
+  if (state.answered) return;
+  const val = document.getElementById('fill-input')?.value?.trim();
+  if (!val) return;
+  state.answered = true; clearTimer();
+  const isCorrect = val.toLowerCase() === q.answer.toLowerCase();
+  processAnswer(isCorrect, val, q.answer, 0);
+  document.getElementById('fill-input').disabled = true;
+  document.getElementById('btn-submit-fill').disabled = true;
+  document.getElementById('fill-input').style.borderColor = isCorrect ? '#2ecc71' : '#e74c3c';
+  if (!isCorrect) {
+    const hint = document.createElement('div');
+    hint.style.cssText = 'color:#2ecc71;font-weight:700;text-align:center;margin-top:8px;';
+    hint.textContent = `✅ Đáp án đúng: ${q.answer}`;
+    document.querySelector('.fill-wrap').appendChild(hint);
+  }
+  showFeedback(isCorrect); showNextBtn();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  DRAG & DROP
+// ══════════════════════════════════════════════════════════════
+function renderDragDrop(q, wrap) {
+  wrap.className = 'answers-wrap grid-1';
+  let mapping = {};
+  try { mapping = JSON.parse(q.answer); } catch(e) { renderMCQ(q, wrap); return; }
+  const items = Object.keys(mapping);
+  const zones = [...new Set(Object.values(mapping))];
+  const shuffledItems = shuffleArray([...items]);
+
+  wrap.innerHTML = `
+    <div class="dragdrop-wrap">
+      <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-bottom:8px;">Kéo các mục vào vị trí đúng</p>
+      <div class="drag-items-row" id="drag-source">${shuffledItems.map(i=>`<div class="drag-item" draggable="true" data-item="${i}">${i}</div>`).join('')}</div>
+      <div class="drop-zones" id="drop-zones">
+        ${zones.map(z=>`<div class="drop-row"><div class="drop-label">${z}</div><div class="drop-zone" data-zone="${z}"><span style="color:var(--text-muted);font-size:0.8rem">Kéo vào đây</span></div></div>`).join('')}
+      </div>
+      <button class="btn-submit-fill" id="btn-submit-drag" style="margin-top:12px;">✅ Kiểm tra</button>
+    </div>`;
+  setupDragEvents();
+  document.getElementById('btn-submit-drag').addEventListener('click', () => checkDragDrop(mapping));
+}
+
+function setupDragEvents() {
+  document.querySelectorAll('.drag-item').forEach(item => {
+    item.addEventListener('dragstart', e => { state.dragState.dragging = item; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); state.dragState.dragging = null; });
+    item.addEventListener('touchstart', touchStart, {passive:true});
+    item.addEventListener('touchmove', touchMove, {passive:false});
+    item.addEventListener('touchend', touchEnd);
+  });
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('drag-over');
+      if (state.dragState.dragging) { const s = zone.querySelector('span'); if(s) s.remove(); zone.appendChild(state.dragState.dragging); }
+    });
+  });
+}
+
+let touchItem=null, touchClone=null;
+function touchStart(e) { touchItem = e.currentTarget; touchClone = touchItem.cloneNode(true); touchClone.style.cssText='position:fixed;opacity:0.7;pointer-events:none;z-index:9999;'; document.body.appendChild(touchClone); }
+function touchMove(e) { e.preventDefault(); const t=e.touches[0]; if(touchClone){touchClone.style.left=t.clientX-30+'px';touchClone.style.top=t.clientY-20+'px';} }
+function touchEnd(e) { if(touchClone){touchClone.remove();touchClone=null;} const t=e.changedTouches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); const zone=el?.closest?.('.drop-zone'); if(zone&&touchItem){const s=zone.querySelector('span');if(s)s.remove();zone.appendChild(touchItem);} touchItem=null; }
+
+function checkDragDrop(mapping) {
+  if (state.answered) return;
+  state.answered = true; clearTimer();
+  let correct=0, total=Object.keys(mapping).length;
+  document.querySelectorAll('.drop-zone').forEach(zone => {
+    const item = zone.querySelector('.drag-item');
+    if (item) {
+      const ok = mapping[item.dataset.item] === zone.dataset.zone;
+      if (ok) { correct++; item.style.background='linear-gradient(135deg,#1e8449,#2ecc71)'; }
+      else { item.style.background='linear-gradient(135deg,#922b21,#e74c3c)'; }
+    }
+  });
+  processAnswer(correct===total, `${correct}/${total}`, `${total}/${total}`, 0);
+  showFeedback(correct===total); showNextBtn();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MATCHING
+// ══════════════════════════════════════════════════════════════
+function renderMatching(q, wrap) {
+  wrap.className = 'answers-wrap grid-1';
+  let pairs = {};
+  try { pairs = JSON.parse(q.answer); } catch(e) { renderMCQ(q, wrap); return; }
+  const lefts  = Object.keys(pairs);
+  const rights = shuffleArray(Object.values(pairs));
+  state.matchState = { selected: null, selectedSide: null, pairs: {}, correct: pairs };
+
+  wrap.innerHTML = `
+    <div class="matching-wrap">
+      <p style="text-align:center;color:var(--text-muted);font-size:0.85rem;margin-bottom:12px;">Bấm vào 2 mục tương ứng để nối</p>
+      <div class="matching-grid">
+        <div class="match-col" id="match-left">
+          ${lefts.map(l=>`<div class="match-item" data-side="left" data-val="${l}">${l}</div>`).join('')}
+        </div>
+        <div class="match-col" id="match-right">
+          ${rights.map(r=>`<div class="match-item" data-side="right" data-val="${r}">${r}</div>`).join('')}
+        </div>
+      </div>
+      <button class="btn-submit-fill" id="btn-check-match" style="margin-top:14px;display:none;">✅ Kiểm tra</button>
+    </div>`;
+
+  wrap.querySelectorAll('.match-item').forEach(item => {
+    item.addEventListener('click', () => handleMatchClick(item, lefts));
+  });
+}
+
+function handleMatchClick(item, lefts) {
+  if (item.classList.contains('matched')) return;
+  const side = item.dataset.side, val = item.dataset.val;
+  if (!state.matchState.selected) {
+    state.matchState.selected = val; state.matchState.selectedSide = side;
+    item.classList.add('selected');
+  } else {
+    if (state.matchState.selectedSide === side) {
+      document.querySelectorAll('.match-item.selected').forEach(el => el.classList.remove('selected'));
+      item.classList.add('selected');
+      state.matchState.selected = val; state.matchState.selectedSide = side; return;
+    }
+    const prev = document.querySelector(`.match-item[data-val="${state.matchState.selected}"][data-side="${state.matchState.selectedSide}"]`);
+    if (prev) prev.classList.remove('selected');
+    item.classList.remove('selected');
+    let leftVal  = side==='left'  ? val : state.matchState.selected;
+    let rightVal = side==='right' ? val : state.matchState.selected;
+    state.matchState.pairs[leftVal] = rightVal;
+    if (prev) prev.classList.add('matched');
+    item.classList.add('matched');
+    state.matchState.selected = null;
+    if (Object.keys(state.matchState.pairs).length >= lefts.length) {
+      const btn = document.getElementById('btn-check-match');
+      btn.style.display = 'block';
+      btn.addEventListener('click', checkMatching);
+    }
+  }
+}
+
+function checkMatching() {
+  if (state.answered) return;
+  state.answered = true; clearTimer();
+  const { pairs, correct } = state.matchState;
+  let ok=0, total=Object.keys(correct).length;
+  Object.keys(correct).forEach(k => { if (pairs[k] === correct[k]) ok++; });
+  processAnswer(ok===total, JSON.stringify(pairs), JSON.stringify(correct), 0);
+  showFeedback(ok===total); showNextBtn();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  ANSWER PROCESSING
+// ══════════════════════════════════════════════════════════════
+function processAnswer(isCorrect, userAnswer, correctAnswer, bonus) {
+  let pts = 0;
+  if (isCorrect) {
+    state.streak++; state.maxStreak = Math.max(state.maxStreak, state.streak);
+    pts = CONFIG.POINTS_CORRECT + bonus + (state.streak > 1 ? CONFIG.POINTS_STREAK * (state.streak-1) : 0);
+    state.score += pts; playSound('correct');
+  } else { state.streak = 0; playSound('wrong'); }
+  state.answers.push({ q: state.questions[state.current], userAnswer, correctAnswer, isCorrect, points: pts });
+  updateScoreDisplay(); updateStreakDisplay();
+}
+
+function updateScoreDisplay() {
+  const el = document.getElementById('score-display');
+  el.textContent = state.score; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+
+function updateStreakDisplay() {
+  const el = document.getElementById('streak-display');
+  if (state.streak > 1) { el.style.display='block'; document.getElementById('streak-val').textContent=state.streak; }
+  else el.style.display='none';
+}
+
+function showFeedback(isCorrect) {
+  const overlay = document.getElementById('feedback-overlay');
+  overlay.textContent = isCorrect ? '✅' : '❌';
+  overlay.classList.add('show');
+  setTimeout(() => overlay.classList.remove('show'), 700);
+}
+
+function showNextBtn() { document.getElementById('btn-next').style.display = 'block'; }
+
+// ══════════════════════════════════════════════════════════════
+//  TIMER
+// ══════════════════════════════════════════════════════════════
+function startTimer() {
+  clearTimer();
+  state.timerValue = CONFIG.TIMER_SECONDS;
+  const display = document.getElementById('timer-display');
+  const val     = document.getElementById('timer-val');
+  display.classList.remove('urgent'); val.textContent = state.timerValue;
+  state.timer = setInterval(() => {
+    state.timerValue--;
+    val.textContent = state.timerValue;
+    if (state.timerValue <= 10) display.classList.add('urgent');
+    if (state.timerValue <= 0) {
+      clearTimer();
+      if (!state.answered) {
+        state.answered = true;
+        processAnswer(false, '(Hết giờ)', state.questions[state.current].answer, 0);
+        showFeedback(false); showNextBtn();
+        document.querySelectorAll('.answer-btn').forEach(btn => {
+          btn.disabled = true;
+          if (btn.dataset.value?.trim().toLowerCase() === state.questions[state.current].answer.trim().toLowerCase()) btn.classList.add('correct');
+        });
+      }
+    }
+  }, 1000);
+}
+
+function clearTimer() { if (state.timer) { clearInterval(state.timer); state.timer = null; } }
+
+function nextQuestion() { state.current++; document.getElementById('btn-next').style.display='none'; renderQuestion(); }
+
+// ══════════════════════════════════════════════════════════════
+//  END GAME
+// ══════════════════════════════════════════════════════════════
+function endGame() {
+  clearTimer();
+  const elapsed  = Math.floor((Date.now() - state.startTime) / 1000);
+  const correct  = state.answers.filter(a => a.isCorrect).length;
+  const wrong    = state.answers.length - correct;
+  const accuracy = state.answers.length > 0 ? Math.round((correct/state.answers.length)*100) : 0;
+  const finalScore = state.questions.length > 0 ? Math.round((correct/state.questions.length)*10*10)/10 : 0;
+  saveToLeaderboard({ ...state.student, score:state.score, correct, time:elapsed, testNum:state.selectedTest });
+  if (accuracy >= 70) launchConfetti();
+  showScreen('result');
+  renderResult(finalScore, correct, wrong, elapsed, accuracy);
+}
+
+function renderResult(score, correct, wrong, elapsed, accuracy) {
+  let trophy='🏆', title='Xuất sắc!';
+  if (accuracy < 50)       { trophy='😅'; title='Cố lên!'; }
+  else if (accuracy < 70)  { trophy='🥉'; title='Khá tốt!'; }
+  else if (accuracy < 90)  { trophy='🥈'; title='Giỏi lắm!'; }
+  document.getElementById('result-trophy').textContent    = trophy;
+  document.getElementById('result-title').textContent     = title;
+  document.getElementById('result-score-big').textContent = score.toFixed(1);
+  document.getElementById('stat-correct').textContent     = correct;
+  document.getElementById('stat-wrong').textContent       = wrong;
+  document.getElementById('stat-time').textContent        = formatTime(elapsed);
+  document.getElementById('stat-accuracy').textContent    = accuracy + '%';
+
+  const badges = [];
+  if (accuracy===100)        badges.push('🎯 Hoàn hảo!');
+  if (state.maxStreak >= 5)  badges.push(`🔥 Chuỗi ${state.maxStreak}`);
+  if (elapsed < 120)         badges.push('⚡ Siêu nhanh');
+  if (state.score > 1200)    badges.push('💎 Điểm cao');
+  document.getElementById('badges-row').innerHTML = badges.map(b=>`<div class="badge-item">${b}</div>`).join('');
+
+  document.getElementById('review-tbody').innerHTML = state.answers.map((a,i) => `
+    <tr class="${a.isCorrect?'row-correct':'row-wrong'}">
+      <td>${i+1}</td>
+      <td>${a.q.question.substring(0,50)}${a.q.question.length>50?'...':''}</td>
+      <td>${String(a.userAnswer).substring(0,40)}</td>
+      <td>${String(a.correctAnswer).substring(0,40)}</td>
+      <td><span class="result-icon">${a.isCorrect?'✅':'❌'}</span></td>
+    </tr>`).join('');
+
+  renderLeaderboard();
+}
+
+// ══════════════════════════════════════════════════════════════
+//  LEADERBOARD
+// ══════════════════════════════════════════════════════════════
+function saveToLeaderboard(entry) {
+  let board = JSON.parse(localStorage.getItem(CONFIG.LEADERBOARD_KEY)||'[]');
+  board.push({...entry, date: new Date().toLocaleDateString('vi-VN')});
+  board = board.sort((a,b)=>b.score-a.score).slice(0,20);
+  localStorage.setItem(CONFIG.LEADERBOARD_KEY, JSON.stringify(board));
+}
+
+function renderLeaderboard() {
+  const board   = JSON.parse(localStorage.getItem(CONFIG.LEADERBOARD_KEY)||'[]');
+  const medals  = ['🥇','🥈','🥉'];
+  const el      = document.getElementById('leaderboard-list');
+  el.innerHTML  = board.slice(0,10).map((row,i)=>`
+    <div class="lb-row ${i<3?'lb-top':''}">
+      <span class="lb-rank">${medals[i]||(i+1)}</span>
+      <span class="lb-name">${row.name}</span>
+      <span class="lb-class">${row.class}</span>
+      <span class="lb-score">${row.score}</span>
+    </div>`).join('') || '<p style="color:var(--text-muted);text-align:center;padding:16px;">Chưa có kết quả</p>';
+}
+
+// ══════════════════════════════════════════════════════════════
+//  EXPORT EXCEL
+// ══════════════════════════════════════════════════════════════
+function exportExcel() {
+  if (typeof XLSX === 'undefined') { showToast('⚠️ SheetJS chưa tải!'); return; }
+  const correct = state.answers.filter(a=>a.isCorrect).length;
+  const elapsed = Math.floor((Date.now()-state.startTime)/1000);
+  const accuracy = state.answers.length > 0 ? Math.round((correct/state.answers.length)*100) : 0;
+  const infoData = [
+    ['📋 KẾT QUẢ KIỂM TRA'],[], ['Họ tên:',state.student.name],
+    ['Lớp:',state.student.class],['Mã HS:',state.student.id],
+    ['Bài kiểm tra:',`Test ${state.selectedTest}_K7`],
+    ['Ngày làm:',new Date().toLocaleString('vi-VN')],[],
+    ['TỔNG KẾT'],['Điểm (10):',Math.round((correct/state.questions.length)*10*10)/10],
+    ['Điểm thưởng:',state.score],['Câu đúng:',correct],
+    ['Câu sai:',state.answers.length-correct],['Độ chính xác:',accuracy+'%'],
+    ['Thời gian:',formatTime(elapsed)],['Chuỗi đúng cao nhất:',state.maxStreak],
+  ];
+  const detailHeader = ['STT','Câu hỏi','Loại','Đáp án học sinh','Đáp án đúng','Kết quả','Điểm'];
+  const detailRows   = state.answers.map((a,i)=>[i+1,a.q.question,a.q.type,a.userAnswer,a.correctAnswer,a.isCorrect?'✅ Đúng':'❌ Sai',a.points]);
+  const wb = XLSX.utils.book_new();
+  const ws1 = XLSX.utils.aoa_to_sheet(infoData); ws1['!cols']=[{wch:20},{wch:30}];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Kết quả');
+  const ws2 = XLSX.utils.aoa_to_sheet([detailHeader,...detailRows]); ws2['!cols']=[{wch:5},{wch:50},{wch:12},{wch:30},{wch:30},{wch:10},{wch:8}];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Chi tiết');
+  XLSX.writeFile(wb, `KetQua_${state.student.name}_${state.student.class}_Test${state.selectedTest}.xlsx`);
+  showToast('✅ Đã xuất file Excel thành công!');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  SOUND / CONFETTI / UTILS
+// ══════════════════════════════════════════════════════════════
+function playSound(type) {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if (type==='correct') {
+      osc.frequency.setValueAtTime(523.25,ctx.currentTime); osc.frequency.setValueAtTime(659.25,ctx.currentTime+0.1); osc.frequency.setValueAtTime(783.99,ctx.currentTime+0.2);
+      gain.gain.setValueAtTime(0.2,ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.5);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.5);
+    } else {
+      osc.frequency.setValueAtTime(200,ctx.currentTime); osc.frequency.setValueAtTime(150,ctx.currentTime+0.15);
+      gain.gain.setValueAtTime(0.2,ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.35);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.35);
+    }
+  } catch(e) {}
+}
+
+function launchConfetti() {
+  const colors=['#a78bfa','#f59e0b','#10b981','#3b82f6','#ec4899','#f87171'];
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div'); el.className='confetti-piece';
+      el.style.cssText=`left:${Math.random()*100}vw;top:-20px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'2px'};width:${Math.random()*10+6}px;height:${Math.random()*12+6}px;animation-delay:0s;animation-duration:${Math.random()*1.5+1.5}s;`;
+      document.body.appendChild(el); setTimeout(()=>el.remove(),3000);
+    },i*40);
+  }
+}
+
+function showScreen(name) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(`screen-${name}`).classList.add('active'); }
+function shuffleArray(arr) { const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function formatTime(s) { const m=Math.floor(s/60),sec=s%60; return m>0?`${m}p ${sec}s`:`${sec}s`; }
+function showToast(msg) { const ex=document.querySelector('.toast'); if(ex)ex.remove(); const el=document.createElement('div'); el.className='toast'; el.textContent=msg; document.body.appendChild(el); setTimeout(()=>el.remove(),3000); }
+function retryTest() { state.questions=shuffleArray([...state.questions]); state.current=0; state.score=0; state.streak=0; state.maxStreak=0; state.answers=[]; state.startTime=Date.now(); showScreen('quiz'); renderQuestion(); }
+function goHome() { clearTimer(); showScreen('welcome'); }
+</script>
+
+<!-- Extra styles for True/False -->
+<style>
+.tf-container { width:100%; display:flex; flex-direction:column; gap:10px; }
+.tf-row { background:var(--card-bg); border:1px solid var(--card-border); border-radius:14px; padding:12px 16px; display:flex; flex-direction:column; gap:10px; }
+.tf-text { font-size:0.95rem; color:var(--text); line-height:1.5; }
+.tf-btns { display:flex; gap:10px; }
+.tf-btn {
+  flex:1; padding:8px 12px; border-radius:10px; border:2px solid var(--card-border);
+  background:var(--card-bg); color:var(--text); font-family:'Nunito',sans-serif;
+  font-size:0.9rem; font-weight:700; cursor:pointer; transition:all .2s;
+}
+.tf-btn:hover { transform:translateY(-2px); border-color:var(--primary-light); }
+.tf-btn.tf-selected { background:var(--primary); border-color:var(--primary-light); color:#fff; }
+.tf-btn.tf-correct { background:linear-gradient(135deg,#1e8449,#2ecc71)!important; border-color:#2ecc71!important; color:#fff!important; }
+.tf-btn.tf-wrong   { background:linear-gradient(135deg,#922b21,#e74c3c)!important; border-color:#e74c3c!important; color:#fff!important; }
+</style>
 </body>
 </html>
