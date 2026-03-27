@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📖 Hướng dẫn cài đặt MiniTest K7</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0;padding:0;box-sizing:border-box; }
+body {
+  font-family:'Nunito',sans-serif;
+  background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+  color:#f1f5f9; min-height:100vh; padding:40px 20px;
+}
+.container { max-width:800px; margin:0 auto; }
+h1 { font-family:'Baloo 2',cursive; font-size:2rem; text-align:center; margin-bottom:8px;
+  background:linear-gradient(90deg,#a78bfa,#f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+.subtitle { text-align:center; color:#94a3b8; margin-bottom:40px; }
+.card {
+  background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1);
+  border-radius:20px; padding:28px; margin-bottom:24px;
+}
+h2 { font-family:'Baloo 2',cursive; color:#a78bfa; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+p, li { line-height:1.8; color:#cbd5e1; }
+ol, ul { padding-left:20px; }
+li { margin-bottom:8px; }
+code {
+  background:rgba(124,58,237,0.3); border-radius:6px;
+  padding:2px 8px; font-size:0.85rem; color:#a78bfa; word-break:break-all;
+}
+.code-block {
+  background:rgba(0,0,0,0.4); border-radius:12px;
+  padding:16px; margin:12px 0; font-size:0.82rem;
+  color:#a78bfa; overflow-x:auto; white-space:pre;
+  border:1px solid rgba(124,58,237,0.3); line-height:1.7;
+}
+.step { display:flex; gap:16px; margin-bottom:16px; }
+.step-num {
+  width:36px;height:36px; border-radius:50%;
+  background:linear-gradient(135deg,#7c3aed,#a855f7);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:1rem;flex-shrink:0;margin-top:2px;
+}
+.step-body h3 { color:#f1f5f9; margin-bottom:6px; font-size:1rem; }
+.tip { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:12px 16px; margin-top:12px; }
+.tip strong { color:#10b981; }
+.warn { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:12px 16px; margin-top:12px; }
+.warn strong { color:#f59e0b; }
+table { width:100%; border-collapse:collapse; margin-top:12px; }
+th { background:rgba(124,58,237,0.2); padding:10px 12px; text-align:left; color:#a78bfa; font-size:0.85rem; }
+td { padding:9px 12px; border-top:1px solid rgba(255,255,255,0.07); font-size:0.85rem; color:#94a3b8; }
+.back-btn {
+  display:inline-block; margin-bottom:24px;
+  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);
+  border-radius:10px; padding:8px 18px; color:#f1f5f9;
+  text-decoration:none; font-weight:700; font-size:0.9rem;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="index.html" class="back-btn">← Quay lại MiniTest</a>
+
+  <h1>📖 Hướng dẫn cài đặt MiniTest K7</h1>
+  <p class="subtitle">Kết nối Google Form → Google Sheets → Website</p>
+
+  <!-- BƯỚC 1 -->
+  <div class="card">
+    <h2>📝 Bước 1: Cấu trúc Google Form & Sheets</h2>
+    <p>Google Form của bạn đã được tạo. Khi học sinh submit form, dữ liệu tự động vào Google Sheets.</p>
+    <p style="margin-top:12px;">Tuy nhiên, để website đọc được câu hỏi, bạn cần tạo một sheet riêng với cấu trúc sau:</p>
+    <table>
+      <tr><th>Cột (Header)</th><th>Ý nghĩa</th><th>Ví dụ</th></tr>
+      <tr><td><code>Question</code></td><td>Câu hỏi</td><td>2x + 6 = 0, nghiệm x = ?</td></tr>
+      <tr><td><code>Type</code></td><td>Loại câu</td><td>mcq | fill | dragdrop | matching</td></tr>
+      <tr><td><code>Options</code></td><td>Các đáp án (ngăn cách |)</td><td>x=3 | x=-3 | x=6 | x=-6</td></tr>
+      <tr><td><code>Correct</code></td><td>Đáp án đúng</td><td>x=-3</td></tr>
+      <tr><td><code>Image</code></td><td>URL hình ảnh (nếu có)</td><td>https://...</td></tr>
+    </table>
+    <div class="tip"><strong>💡 Tip:</strong> Tạo Sheet riêng tên "Questions" trong cùng Spreadsheet. Row 1 là header, từ row 2 trở đi là câu hỏi.</div>
+  </div>
+
+  <!-- BƯỚC 2 -->
+  <div class="card">
+    <h2>🔗 Bước 2: Publish Google Sheets thành JSON</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Mở Google Sheets của bạn</h3>
+        <p>Mở file Sheets liên kết với Google Form (Test 1_K7, Test 2_K7...)</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Lấy Spreadsheet ID</h3>
+        <p>Từ URL của Sheets, copy phần ID:</p>
+        <div class="code-block">https://docs.google.com/spreadsheets/d/<span style="color:#f59e0b">[SPREADSHEET_ID]</span>/edit
+                                                                          ↑ Copy phần này</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Tạo URL JSON (Phương pháp 1 – GViz API)</h3>
+        <p>Dùng Google Visualization API (không cần publish):</p>
+        <div class="code-block">https://docs.google.com/spreadsheets/d/<span style="color:#f59e0b">[ID]</span>/gviz/tq?tqx=out:json&sheet=Questions</div>
+        <p style="margin-top:8px;">Thay <code>[ID]</code> bằng Spreadsheet ID của bạn.</p>
+        <div class="warn"><strong>⚠️ Lưu ý:</strong> Sheet phải được chia sẻ "Anyone with the link can view"</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Publish to web (Phương pháp 2)</h3>
+        <p>File → Share → Publish to web → Chọn sheet "Questions" → CSV → Publish</p>
+        <p style="margin-top:6px;">URL dạng: <code>https://docs.google.com/spreadsheets/d/[ID]/export?format=csv&gid=0</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 3 -->
+  <div class="card">
+    <h2>⚙️ Bước 3: Nhập URL vào MiniTest</h2>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Mở MiniTest website</h3>
+        <p>Mở file <code>index.html</code> trong trình duyệt</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Mở phần cấu hình</h3>
+        <p>Bấm vào "<strong>⚙️ Cấu hình Google Sheets URL</strong>" ở cuối trang chủ</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Nhập URL cho từng test</h3>
+        <p>Dán URL JSON của từng Test vào ô tương ứng → Bấm "<strong>💾 Lưu cấu hình</strong>"</p>
+      </div>
+    </div>
+    <div class="tip"><strong>💡 URL được lưu vào localStorage</strong> – Chỉ cần nhập 1 lần, lần sau tự động nhớ.</div>
+  </div>
+
+  <!-- BƯỚC 4 -->
+  <div class="card">
+    <h2>📊 Bước 4: Cấu trúc dữ liệu ví dụ</h2>
+    <p>Sheet "Questions" của bạn nên có dạng:</p>
+    <table>
+      <tr><th>Question</th><th>Type</th><th>Options</th><th>Correct</th><th>Image</th></tr>
+      <tr><td>2x + 6 = 0 có nghiệm x = ?</td><td>mcq</td><td>x=3|x=-3|x=6|x=-6</td><td>x=-3</td><td></td></tr>
+      <tr><td>7² = ?</td><td>fill</td><td></td><td>49</td><td></td></tr>
+      <tr><td>Tam giác có 3 cạnh = nhau gọi là?</td><td>mcq</td><td>Vuông|Cân|Đều|Nhọn</td><td>Đều</td><td></td></tr>
+    </table>
+
+    <div style="margin-top:20px">
+      <h3 style="color:#a78bfa;margin-bottom:12px;">Loại câu hỏi hỗ trợ:</h3>
+      <table>
+        <tr><th>Type</th><th>Mô tả</th><th>Format Options</th><th>Format Correct</th></tr>
+        <tr><td><code>mcq</code></td><td>Trắc nghiệm</td><td>A|B|C|D</td><td>B</td></tr>
+        <tr><td><code>fill</code></td><td>Điền từ</td><td>(để trống)</td><td>đáp án</td></tr>
+        <tr><td><code>dragdrop</code></td><td>Kéo thả</td><td>(để trống)</td><td>{"item1":"nhóm1","item2":"nhóm2"}</td></tr>
+        <tr><td><code>matching</code></td><td>Nối cột</td><td>(để trống)</td><td>{"trái1":"phải1","trái2":"phải2"}</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- BƯỚC 5 -->
+  <div class="card">
+    <h2>🚀 Bước 5: Chạy website</h2>
+    <p>Cách 1 – Mở trực tiếp: Double-click <code>index.html</code></p>
+    <p style="margin-top:8px;">Cách 2 – Dùng Live Server (VS Code):</p>
+    <div class="code-block">npx live-server .</div>
+    <p style="margin-top:8px;">Cách 3 – Deploy lên GitHub Pages / Netlify để học sinh dùng online</p>
+    <div class="warn"><strong>⚠️ CORS:</strong> Nếu fetch bị lỗi CORS, deploy website lên server thật hoặc dùng GitHub Pages. Local file:// có thể bị chặn.</div>
+  </div>
+
+  <!-- CẤU TRÚC FILE -->
+  <div class="card">
+    <h2>📁 Cấu trúc file</h2>
+    <div class="code-block">minitest/
+├── index.html      ← Trang chính
+├── style.css       ← Giao diện game
+├── script.js       ← Logic + fetch + export
+└── huongdan.html   ← File này</div>
+  </div>
+
+  <div style="text-align:center;margin-top:32px;color:#475569;font-size:0.85rem;">
+    Made with ❤️ for K7 Students • MiniTest EdTech
+  </div>
+</div>
+</body>
+</html>

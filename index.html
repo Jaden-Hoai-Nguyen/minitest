@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 MiniTest K7 – Học Vui Mỗi Ngày</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== PARTICLES BG ===== -->
+<div id="particles"></div>
+
+<!-- ===== SCREEN: WELCOME ===== -->
+<div id="screen-welcome" class="screen active">
+  <div class="welcome-card">
+    <div class="logo-wrap">
+      <div class="logo-icon">🎮</div>
+      <h1 class="logo-title">MiniTest K7</h1>
+      <p class="logo-sub">Học Vui – Chơi Hay – Thành Công!</p>
+    </div>
+
+    <form id="form-student" class="student-form" onsubmit="return false;">
+      <div class="input-group">
+        <span class="input-icon">👤</span>
+        <input type="text" id="inp-name" placeholder="Họ và tên học sinh" required maxlength="50">
+      </div>
+      <div class="input-row">
+        <div class="input-group">
+          <span class="input-icon">🏫</span>
+          <input type="text" id="inp-class" placeholder="Lớp (VD: 7A1)" required maxlength="10">
+        </div>
+        <div class="input-group">
+          <span class="input-icon">🪪</span>
+          <input type="text" id="inp-id" placeholder="Mã học sinh" required maxlength="20">
+        </div>
+      </div>
+
+      <div class="test-selector">
+        <p class="selector-label">📚 Chọn bài kiểm tra:</p>
+        <div class="test-grid" id="test-grid">
+          <button type="button" class="test-btn active" data-test="1">
+            <span class="test-emoji">📝</span>
+            <span>Test 1</span>
+          </button>
+          <button type="button" class="test-btn" data-test="2">
+            <span class="test-emoji">📝</span>
+            <span>Test 2</span>
+          </button>
+          <button type="button" class="test-btn" data-test="3">
+            <span class="test-emoji">📝</span>
+            <span>Test 3</span>
+          </button>
+          <button type="button" class="test-btn" data-test="4">
+            <span class="test-emoji">📝</span>
+            <span>Test 4</span>
+          </button>
+        </div>
+      </div>
+
+      <button type="button" class="btn-start" id="btn-start" onclick="startGame()">
+        <span class="btn-start-text">🚀 Bắt đầu ngay!</span>
+        <div class="btn-shine"></div>
+      </button>
+    </form>
+
+    <div id="connect-info" class="connect-info">
+      <details>
+        <summary>⚙️ Cấu hình Google Sheets URL</summary>
+        <div class="sheet-config">
+          <p>Nhập URL Google Sheets đã publish (JSON):</p>
+          <div class="url-inputs" id="url-inputs">
+            <div class="url-row"><label>Test 1:</label><input type="text" id="url-1" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
+            <div class="url-row"><label>Test 2:</label><input type="text" id="url-2" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
+            <div class="url-row"><label>Test 3:</label><input type="text" id="url-3" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
+            <div class="url-row"><label>Test 4:</label><input type="text" id="url-4" placeholder="https://docs.google.com/spreadsheets/d/.../gviz/tq?..."></div>
+          </div>
+          <button onclick="saveUrls()" class="btn-save-url">💾 Lưu cấu hình</button>
+          <div class="guide-box">
+            <strong>📖 Hướng dẫn lấy URL:</strong><br>
+            1. Mở Google Sheets liên kết với Form<br>
+            2. File → Share → Publish to web → Chọn "Entire Document" + CSV<br>
+            3. Hoặc dùng URL dạng:<br>
+            <code>https://docs.google.com/spreadsheets/d/[ID]/gviz/tq?tqx=out:json</code>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: LOADING ===== -->
+<div id="screen-loading" class="screen">
+  <div class="loading-wrap">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Đang tải câu hỏi...</p>
+    <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: QUIZ ===== -->
+<div id="screen-quiz" class="screen">
+  <!-- Header -->
+  <div class="quiz-header">
+    <div class="header-left">
+      <div class="player-badge">
+        <span class="player-avatar" id="q-avatar">🧑</span>
+        <div>
+          <div class="player-name" id="q-name">Học sinh</div>
+          <div class="player-class" id="q-class">Lớp</div>
+        </div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="progress-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+        <div class="progress-text" id="progress-text">1 / 10</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="score-display">
+        <span class="score-label">⭐ Điểm</span>
+        <span class="score-value" id="score-display">0</span>
+      </div>
+      <div class="timer-display" id="timer-display">
+        <span class="timer-icon">⏱</span>
+        <span id="timer-val">30</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question Area -->
+  <div class="quiz-body" id="quiz-body">
+    <div class="question-number" id="question-number">Câu 1</div>
+    <div class="question-type-badge" id="question-type-badge">Trắc nghiệm</div>
+    <div class="question-text" id="question-text">Câu hỏi sẽ hiển thị ở đây...</div>
+    <div class="question-image-wrap" id="question-image-wrap" style="display:none">
+      <img id="question-image" src="" alt="Hình câu hỏi">
+    </div>
+    <div class="answers-wrap" id="answers-wrap"></div>
+    <div class="feedback-overlay" id="feedback-overlay"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="quiz-footer">
+    <div class="streak-display" id="streak-display" style="display:none">
+      🔥 Chuỗi đúng: <span id="streak-val">0</span>
+    </div>
+    <button class="btn-next" id="btn-next" onclick="nextQuestion()" style="display:none">
+      Câu tiếp ➡️
+    </button>
+  </div>
+</div>
+
+<!-- ===== SCREEN: RESULT ===== -->
+<div id="screen-result" class="screen">
+  <div class="result-card">
+    <div class="result-trophy" id="result-trophy">🏆</div>
+    <h2 class="result-title" id="result-title">Xuất sắc!</h2>
+    <div class="result-score-big" id="result-score-big">0</div>
+    <p class="result-score-label">điểm</p>
+
+    <div class="result-stats">
+      <div class="stat-item correct">
+        <span class="stat-icon">✅</span>
+        <span class="stat-val" id="stat-correct">0</span>
+        <span class="stat-label">Đúng</span>
+      </div>
+      <div class="stat-item wrong">
+        <span class="stat-icon">❌</span>
+        <span class="stat-val" id="stat-wrong">0</span>
+        <span class="stat-label">Sai</span>
+      </div>
+      <div class="stat-item time">
+        <span class="stat-icon">⏱</span>
+        <span class="stat-val" id="stat-time">0s</span>
+        <span class="stat-label">Thời gian</span>
+      </div>
+      <div class="stat-item accuracy">
+        <span class="stat-icon">🎯</span>
+        <span class="stat-val" id="stat-accuracy">0%</span>
+        <span class="stat-label">Chính xác</span>
+      </div>
+    </div>
+
+    <div class="badges-row" id="badges-row"></div>
+
+    <!-- Review Table -->
+    <div class="review-section">
+      <h3>📋 Chi tiết từng câu</h3>
+      <div class="review-table-wrap">
+        <table class="review-table" id="review-table">
+          <thead>
+            <tr><th>#</th><th>Câu hỏi</th><th>Đáp án của bạn</th><th>Đáp án đúng</th><th>Kết quả</th></tr>
+          </thead>
+          <tbody id="review-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="leaderboard-section">
+      <h3>🏅 Bảng xếp hạng</h3>
+      <div id="leaderboard-list"></div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-export" onclick="exportExcel()">📊 Xuất Excel</button>
+      <button class="btn-retry" onclick="retryTest()">🔄 Làm lại</button>
+      <button class="btn-home" onclick="goHome()">🏠 Trang chủ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audio -->
+<audio id="snd-correct" preload="auto">
+  <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAA..." type="audio/wav">
+</audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
