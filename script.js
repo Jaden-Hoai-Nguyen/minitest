@@ -17,10 +17,10 @@ const CONFIG = {
   // Khi publish Google Sheet → File → Share → Publish to web
   // URL dạng: https://docs.google.com/spreadsheets/d/[SHEET_ID]/gviz/tq?tqx=out:json
   SHEET_URLS: {
-    1: localStorage.getItem('sheet_url_1') || '',
-    2: localStorage.getItem('sheet_url_2') || '',
-    3: localStorage.getItem('sheet_url_3') || '',
-    4: localStorage.getItem('sheet_url_4') || '',
+    1: localStorage.getItem('sheet_url_1') || 'https://docs.google.com/spreadsheets/d/1zgI0VgRRF2LNELXk_6YaVEp7pl2tjHda-bYsY2JiOFQ/gviz/tq?tqx=out:json',
+    2: localStorage.getItem('sheet_url_2') || 'https://docs.google.com/spreadsheets/d/18H4rMnsNA3qziZEDf6GfXNZWVLhDu3ZYzc-JRAkQues/gviz/tq?tqx=out:json',
+    3: localStorage.getItem('sheet_url_3') || 'https://docs.google.com/spreadsheets/d/1mT3VVtbLgtCBovIxMoCboeVqbfvAEX3-h8AVxj8N-ls/gviz/tq?tqx=out:json',
+    4: localStorage.getItem('sheet_url_4') || 'https://docs.google.com/spreadsheets/d/1B0qTMeym2qZhq36iiaAgXtDIILmOMeK7CF0dK7r5WdA/gviz/tq?tqx=out:json',
   }
 };
 
@@ -769,8 +769,8 @@ function endGame() {
   const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
   const correct = state.answers.filter(a => a.isCorrect).length;
   const wrong = state.answers.length - correct;
-  const accuracy = Math.round((correct / state.answers.length) * 100);
-  const finalScore = Math.round((correct / state.questions.length) * 10 * 10) / 10;
+  const accuracy = state.answers.length > 0 ? Math.round((correct / state.answers.length) * 100) : 0;
+  const finalScore = state.questions.length > 0 ? Math.round((correct / state.questions.length) * 10 * 10) / 10 : 0;
 
   // Save to leaderboard
   saveToLeaderboard({ ...state.student, score: state.score, correct, time: elapsed, testNum: state.selectedTest });
@@ -850,7 +850,7 @@ function exportExcel() {
 
   const correct = state.answers.filter(a => a.isCorrect).length;
   const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
-  const accuracy = Math.round((correct / state.answers.length) * 100);
+  const accuracy = state.answers.length > 0 ? Math.round((correct / state.answers.length) * 100) : 0;
 
   // Sheet 1: Thông tin học sinh + tổng kết
   const infoData = [
